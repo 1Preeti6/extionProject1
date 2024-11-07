@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun Background Changer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.5s ease;
+            background-color: #f0f0f0;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            position: relative;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            padding: 1rem;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .gradient-btn {
+            background: linear-gradient(45deg, #ff6b6b, #4834d4);
+            color: white;
+            margin: 1rem 0;
+        }
+
+        .party-btn {
+            background: linear-gradient(45deg, #ffbe0b, #ff006e);
+            color: white;
+        }
+
+        .random-btn {
+            background: linear-gradient(45deg, #00f5d4, #0099ff);
+            color: white;
+        }
+
+        #currentStyle {
+            margin-top: 1rem;
+            font-size: 1.1rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .floating-bubbles {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .bubble {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 8s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); }
+            100% { transform: translateY(-100px) scale(1); }
+        }
+
+        .pattern-btn {
+            background: linear-gradient(45deg, #8e44ad, #3498db);
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .slider-container {
+            margin-top: 1rem;
+        }
+
+        .slider {
+            width: 100%;
+            height: 10px;
+            border-radius: 5px;
+            appearance: none;
+            background: #ddd;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #4834d4;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-bubbles"></div>
+    <div class="container">
+        <h1>🎨 Color Magic!</h1>
+        <div class="controls">
+            <div class="color-options">
+                <button class="btn party-btn" onclick="startPartyMode()">Party Mode</button>
+                <button class="btn random-btn" onclick="generateRandomColor()">Random</button>
+            </div>
+            <button class="btn gradient-btn" onclick="toggleGradient()">Toggle Gradient</button>
+            <button class="btn pattern-btn" onclick="togglePattern()">Toggle Pattern</button>
+            <div class="slider-container">
+                <input type="range" min="0" max="360" value="0" class="slider" id="hueSlider" 
+                       oninput="updateFromSlider(this.value)">
+            </div>
+        </div>
+        <p id="currentStyle">Current Style: Default</p>
+    </div>
+
+    <script>
+        let partyModeInterval;
+        let isGradientMode = false;
+        let isPatternMode = false;
+
+        // Create floating bubbles
+        function createBubbles() {
+            const bubblesContainer = document.querySelector('.floating-bubbles');
+            for (let i = 0; i < 50; i++) {
+                const bubble = document.createElement('div');
+                bubble.className = 'bubble';
+                bubble.style.left = `${Math.random() * 100}%`;
+                bubble.style.width = `${Math.random() * 30 + 10}px`;
+                bubble.style.height = bubble.style.width;
+                bubble.style.animationDuration = `${Math.random() * 4 + 4}s`;
+                bubble.style.animationDelay = `${Math.random() * 2}s`;
+                bubblesContainer.appendChild(bubble);
+            }
+        }
+
+        function generateRandomColor() {
+            stopPartyMode();
+            const hue = Math.floor(Math.random() * 360);
+            const saturation = Math.floor(Math.random() * 30 + 70);
+            const lightness = Math.floor(Math.random() * 30 + 35);
+            const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+            document.body.style.background = color;
+            document.getElementById('currentStyle').textContent = `Current Style: ${color}`;
+            document.getElementById('hueSlider').value = hue;
+        }
+
+        function startPartyMode() {
+            if (partyModeInterval) {
+                stopPartyMode();
+                return;
+            }
+            isGradientMode = false;
+            isPatternMode = false;
+            partyModeInterval = setInterval(() => {
+                generateRandomColor();
+            }, 500);
+            document.getElementById('currentStyle').textContent = 'Current Style: Party Mode 🎉';
+        }
+
+        function stopPartyMode() {
+            if (partyModeInterval) {
+                clearInterval(partyModeInterval);
+                partyModeInterval = null;
+            }
+        }
+
+        function toggleGradient() {
+            stopPartyMode();
+            isGradientMode = !isGradientMode;
+            isPatternMode = false;
+            if (isGradientMode) {
+                const hue1 = Math.floor(Math.random() * 360);
+                const hue2 = (hue1 + 180) % 360;
+                document.body.style.background = 
+                    `linear-gradient(45deg, 
+                        hsl(${hue1}, 70%, 50%), 
+                        hsl(${hue2}, 70%, 50%))`;
+                document.getElementById('currentStyle').textContent = 'Current Style: Gradient';
+            } else {
+                generateRandomColor();
+            }
+        }
+
+        function togglePattern() {
+            stopPartyMode();
+            isPatternMode = !isPatternMode;
+            isGradientMode = false;
+            if (isPatternMode) {
+                const hue = Math.floor(Math.random() * 360);
+                document.body.style.background = 
+                    `repeating-linear-gradient(
+                        45deg,
+                        hsl(${hue}, 70%, 50%),
+                        hsl(${hue}, 70%, 50%) 20px,
+                        hsl(${hue}, 70%, 60%) 20px,
+                        hsl(${hue}, 70%, 60%) 40px
+                    )`;
+                document.getElementById('currentStyle').textContent = 'Current Style: Pattern';
+            } else {
+                generateRandomColor();
+            }
+        }
+
+        function updateFromSlider(value) {
+            stopPartyMode();
+            const color = `hsl(${value}, 70%, 50%)`;
+            document.body.style.background = color;
+            document.getElementById('currentStyle').textContent = `Current Style: ${color}`;
+        }
+
+        // Initialize
+        createBubbles();
+        generateRandomColor();
+    </script>
+</body>
+</html>
